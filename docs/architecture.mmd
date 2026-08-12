@@ -1,0 +1,69 @@
+flowchart TD
+    U[User / API] --> UI{UI lifecycle state}
+    UI -->|demo + empty| DI[Lazy demo indexing]
+    UI -->|ready| G[Input / upload guardrails]
+    DI --> G
+
+    G --> P{Schema-constrained QueryPlan}
+    P --> PF{Workspace preflight}
+    PF -->|missing local data| AB[Abstain]
+    PF -->|structured data| SQL[Read-only Text2SQL / DuckDB]
+    PF -->|external| W[Ask-the-Web]
+    PF -->|corpus or mixed| RS{Task-aware retrieval}
+
+    RS -->|semantic| CI[Chunk index]
+    RS -->|global| GB[Source-balanced evidence]
+    RS -->|hierarchical| SPI[Source-profile index]
+    RS -->|analytical| AN[Documents + deterministic table evidence]
+    SPI --> SEL[Select sources]
+    SEL --> CI
+
+    CI --> D[FastEmbed dense / Qdrant]
+    CI --> B[BM25]
+    D --> F[RRF]
+    B --> F
+    F --> RP{Adaptive reranker policy}
+    RP --> RD[Corpus-scale retrieval depth]
+    RD --> CB{Adaptive 2-5 chunk budget}
+    CB -->|focused| CMP[Query-focused sentence compression]
+    CB -->|broad| EG{Evidence grade}
+    CMP --> EG
+    GB --> EG
+    AN --> EG
+
+    EG -->|sufficient| A[Grounded Gemini generation]
+    EG -->|weak first attempt| COR[Correct retrieval plan]
+    COR --> RS
+    EG -->|external relevant + allowed| W
+    EG -->|unsupported local| AB
+    W --> A
+
+    A --> V{Optional Self-RAG audit}
+    V -->|revise once| RV[Bounded grounded revision]
+    RV --> V
+    V --> O[Cited answer + sources + trace]
+    SQL --> O
+    AB --> O
+
+    O -. cache-bypassed benchmark .-> EV[Evaluation harness]
+    EV --> RM[Source + chunk retrieval metrics]
+    EV --> CTX[Context budget / compression ablations]
+    EV --> PL[Planner / web policy]
+    EV --> CIT[Citation / answer checks]
+    EV --> SQ[Text2SQL / abstention]
+    EV --> HM[Hard Mode]
+    EV --> ST[1x / 5x / 20x scale stress]
+    EV --> LAT[Service node latency]
+    EV --> DJ[Optional calibrated Deep judge]
+    RM --> READY[Quality gates + acceptance checks]
+    CTX --> READY
+    PL --> READY
+    CIT --> READY
+    SQ --> READY
+    HM --> READY
+    ST --> READY
+    LAT --> READY
+    DJ --> READY
+    READY --> HIST[Saved runs + history + deltas]
+
+    API[FastAPI /docs + OpenAPI + Prometheus] -. runtime introspection .-> UI

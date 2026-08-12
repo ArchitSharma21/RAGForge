@@ -1,0 +1,9 @@
+OrbitPay Customer Operations Policy — Demo Corpus
+
+Card disputes: A customer may open a dispute for an eligible card transaction within 60 days of the transaction posting date. Operations should request the transaction date, merchant name, amount, and the customer's reason for dispute.
+
+Refunds: Merchant refunds usually appear within 5–10 business days after the merchant confirms the refund. A refund should not be filed as a card dispute while that normal processing window is still open unless fraud is suspected.
+
+Account access: Support agents must never ask a customer to send a password, one-time passcode, full card number, or recovery code in chat. Identity verification must use the approved verification flow.
+
+Escalation: Suspected account takeover is a priority-security case. Freeze high-risk actions and route the case to the Security Operations queue. Do not promise a specific investigation outcome.

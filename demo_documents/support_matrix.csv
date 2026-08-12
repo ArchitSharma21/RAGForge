@@ -1,0 +1,5 @@
+tier,first_response_sla_hours,monthly_price_usd,dedicated_csm,weekend_support
+Starter,24,0,false,false
+Team,8,49,false,false
+Business,4,199,true,true
+Enterprise,1,799,true,true
