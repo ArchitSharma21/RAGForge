@@ -297,7 +297,7 @@ class RAGEngine:
         trace.setdefault("nodes", []).append(
             {"node": node, "ms": round((time.perf_counter() - started) * 1000, 1), **extra}
         )
-        if self.progress_callback:
+        if getattr(self, "progress_callback", None):
             progress_map = {
                 "guard": (0.05, "Checking request"),
                 "route": (0.18, "Planning information route"),

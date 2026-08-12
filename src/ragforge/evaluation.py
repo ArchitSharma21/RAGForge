@@ -906,15 +906,55 @@ def _profile_benchmark(
     combinations = [(profile, case) for profile in ("Fast", "Balanced", "Agentic") for case in selected]
     total = max(1, len(combinations))
     for idx, (profile, case) in enumerate(combinations, start=1):
-        progress(start + span * (idx-1)/total, f"Profile benchmark {idx}/{len(combinations)}")
-        cfg = PipelineConfig(mode="Documents", profile=profile, model=model, allow_web_fallback=False, use_crag=True, use_self_rag=True)
+        progress(
+            start + span * (idx - 1) / total,
+            f"Profile benchmark {idx}/{len(combinations)}",
+        )
+
+        cfg = PipelineConfig(
+            mode="Documents",
+            profile=profile,
+            model=model,
+            allow_web_fallback=False,
+            use_crag=True,
+            use_self_rag=True,
+        )
         engine = RAGEngine(workspace, request_pacer=request_pacer)
-        wait_before=request_pacer.total_sleep_seconds(); began=time.perf_counter()
-        result=engine.ask(case["question"],cfg,api_key,use_cache=False,record_history=False)
-        wall=(time.perf_counter()-began)*1000; pace=max(0.0,request_pacer.total_sleep_seconds()-wait_before)*1000
-        citations=citation_metrics(result.answer,result.sources); metrics=result.trace.get("metrics",{})
-        rows.append({"profile":profile,"case":case["id"],"answer_key_match":answer_key_match(result.answer,case),"citation_validity":round(float(citations["citation_validity"]),3),"citation_coverage":round(float(citations["citation_coverage"]),3),"latency_ms":round(max(0.0,wall-pace),1),"llm_calls_estimate":int(metrics.get("llm_calls_estimate",0) or 0),"reranker_used":bool(metrics.get("reranker_used",False)),"correction_used":bool(metrics.get("correction_used",False))})
-    return rows
+
+        wait_before = request_pacer.total_sleep_seconds()
+        began = time.perf_counter()
+
+        result = engine.ask(
+            case["question"],
+            cfg,
+            api_key,
+            use_cache=False,
+            record_history=False,
+        )
+
+        wall = (time.perf_counter() - began) * 1000
+        pace = max(
+            0.0,
+            request_pacer.total_sleep_seconds() - wait_before,
+        ) * 1000
+
+        citations = citation_metrics(result.answer, result.sources)
+        metrics = result.trace.get("metrics", {})
+
+        rows.append(
+            {
+                "profile": profile,
+                "case": case["id"],
+                "answer_key_match": answer_key_match(result.answer, case),
+                "citation_validity": round(float(citations["citation_validity"]), 3),
+                "citation_coverage": round(float(citations["citation_coverage"]), 3),
+                "latency_ms": round(max(0.0, wall - pace), 1),
+                "llm_calls_estimate": int(metrics.get("llm_calls_estimate", 0) or 0),
+                "reranker_used": bool(metrics.get("reranker_used", False)),
+                "correction_used": bool(metrics.get("correction_used", False)),
+            }
+        )
+        return rows
 
 
 def _profile_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
